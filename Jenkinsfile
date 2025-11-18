@@ -9,7 +9,7 @@ pipeline {
 
         stage('Code Checkout') {
             steps {
-                git url: 'https://github.com/ton-utilisateur/ton-repo.git', branch: 'main'
+                git url: 'https://github.com/azizbenammar7/BenAmmar_Aziz_4SIM1.git', branch: 'main'
             }
         }
 
