@@ -49,6 +49,14 @@ pipeline {
             }
         }
 
+        stage('MVN SONARQUBE') {
+            steps {
+                withSonarQubeEnv('sonar') {
+                    sh "mvn sonar:sonar"
+                }
+            }
+        }
+
     }
 
     post {
