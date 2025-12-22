@@ -40,7 +40,7 @@ spec:
     spec:
       containers:
       - name: student-app
-        image: azizbenammar11/student-management:1.0.0
+        image: azizbenammar11/student-management:latest
         ports:
         - containerPort: 8089
         env:
