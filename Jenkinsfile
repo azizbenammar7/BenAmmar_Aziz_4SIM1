@@ -55,11 +55,19 @@ pipeline {
                 '''
             }
         }
+
+        stage('Test Application') {
+            steps {
+                sh '''
+                  curl http://192.168.49.2:30089/student/Depatment/getAllDepartment
+                '''
+            }
+        }
     }
 
     post {
         success {
-            echo "🎉 Pipeline CI/CD terminé avec succès"
+            echo "🎉 CI/CD terminé avec succès"
         }
         failure {
             echo "❌ Échec du pipeline"
