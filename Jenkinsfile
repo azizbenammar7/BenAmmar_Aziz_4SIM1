@@ -6,65 +6,63 @@ pipeline {
     }
 
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
-        DOCKER_IMAGE_NAME = "azizbenammar11/student-management"
+        IMAGE_NAME = "azizbenammar11/student-management"
+        TAG = "1.0.0"
+        NAMESPACE = "devops"
     }
 
     stages {
 
-        stage('Code Checkout') {
+        stage('Checkout Code') {
             steps {
                 git branch: 'main',
                     url: 'https://github.com/azizbenammar7/BenAmmar_Aziz_4SIM1.git'
             }
         }
 
-        stage('Build Maven') {
+        stage('Build with Maven') {
             steps {
-                sh "mvn clean package -Dmaven.test.skip=true"
+                sh 'mvn clean package -DskipTests'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                sh """
-                docker build -t $DOCKER_IMAGE_NAME:1.0.0 .
-                """
+                sh 'docker build -t $IMAGE_NAME:$TAG .'
             }
         }
 
-        stage('Docker Login') {
+        stage('Docker Login & Push') {
             steps {
-                sh """
-                echo "$DOCKERHUB_CREDENTIALS_PSW" | docker login -u "$DOCKERHUB_CREDENTIALS_USR" --password-stdin
-                """
-            }
-        }
-
-        stage('Push Docker Image') {
-            steps {
-                sh """
-                docker push $DOCKER_IMAGE_NAME:1.0.0
-                """
-            }
-        }
-
-        stage('MVN SONARQUBE') {
-            steps {
-                withSonarQubeEnv('sonar') {
-                    sh "mvn sonar:sonar"
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-credentials',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    sh '''
+                      echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                      docker push $IMAGE_NAME:$TAG
+                    '''
                 }
             }
         }
 
+        stage('Deploy to Kubernetes') {
+            steps {
+                sh '''
+                  kubectl apply -f k8s-manifests/ -n devops
+                  kubectl rollout status deployment/student-app -n devops
+                '''
+            }
+        }
     }
 
     post {
         success {
-            echo "Build & Push Success!"
+            echo "🎉 Pipeline CI/CD terminé avec succès"
         }
         failure {
-            echo "Build Failed!"
+            echo "❌ Échec du pipeline"
         }
     }
 }
